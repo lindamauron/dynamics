@@ -15,4 +15,4 @@ class Constant(Frequency):
         """
         schedule = lambda t: 2 * np.pi * value * np.ones_like(t)
         integral = lambda t1, t2: 2 * np.pi * value
-        super().__init__(T, schedule, integral, name = "Constant")
+        super().__init__(T, schedule, integral, name="Constant")

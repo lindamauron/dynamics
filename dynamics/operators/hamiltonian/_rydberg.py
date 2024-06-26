@@ -59,7 +59,7 @@ def vdW_potential(
     r_occs = np.array([r_occ(hi, i) for i in range(N)])
     V = r_occs.T @ R @ r_occs / 2  # factor of two because each pair is counted twice
 
-    return V, R/2
+    return V, R / 2
 
 
 class RydbergHamiltionian(TimeDependentHamiltonian):
@@ -120,6 +120,6 @@ class RydbergHamiltionian(TimeDependentHamiltonian):
     @property
     def R(self):
         """
-        The interaction matrix of the Hamiltonian. 
+        The interaction matrix of the Hamiltonian.
         """
         return self._R

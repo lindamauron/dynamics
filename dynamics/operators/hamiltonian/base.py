@@ -14,12 +14,15 @@ from netket.hilbert import Spin as _SpinHilbert
 class TimeDependentHamiltonian:
     """
     Instantiates a callable time-dependent Hamiltonian.
-    It is defined using a list of operators [h] and frequencies [f] such that 
+    It is defined using a list of operators [h] and frequencies [f] such that
     ..math::
         H(t) = \sum_i f_i(t) h_i.
     The utilities `to_sparse`, `to_dense` and `to_jax_operator` act on the separated operators.
     """
-    def __init__(self, operators:List[_AbstractOperator], frequencies:List[_Frequency]):
+
+    def __init__(
+        self, operators: List[_AbstractOperator], frequencies: List[_Frequency]
+    ):
         """
         operators : list of inidividual operators.
             All operators must act on the same Hilbert space.

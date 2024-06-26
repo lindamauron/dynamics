@@ -30,4 +30,4 @@ class Quadratic(Frequency):
         """
 
         schedule, integral = quadratic_sweep(2 * np.pi * f_initial, 2 * np.pi * f_final)
-        super().__init__(T, schedule, integral, name = "Quadratic")
+        super().__init__(T, schedule, integral, name="Quadratic")

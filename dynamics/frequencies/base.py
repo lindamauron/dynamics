@@ -8,7 +8,7 @@ twopi = 2 * np.pi
 
 class Frequency:
     """
-    General class for a frequency schedule. 
+    General class for a frequency schedule.
     It is also possible to integrate and derivate the frequencies over any time interval.
 
     This class comes with multiple algebraical tools, allowing to multiply the whole frequency schedule, shift the time range and so on.
@@ -23,8 +23,8 @@ class Frequency:
             It has to be a postivie number.
         schedule : callable giving the frequency at each time in the annealing process
             The function must be a callable defined on the range [0,1].
-        integral : callable giving the value of the mean integral $\int_t1^t2 f(τ) dτ$. 
-            If nothing is provided, the mean is computed using the trapezoidal rule (if called). 
+        integral : callable giving the value of the mean integral $\int_t1^t2 f(τ) dτ$.
+            If nothing is provided, the mean is computed using the trapezoidal rule (if called).
         """
         if T <= 0 or not np.issubdtype(type(T), np.number):
             raise ValueError(f"T must be a positive number, instead got {T}.")
@@ -80,14 +80,13 @@ class Frequency:
         else:
             return self._integral(t1 / self.T, t2 / self.T)
 
-    
     def __repr__(self) -> str:
         return (
             self.name
             + f"(T={self.T}, in 2π[{self(0.0)/twopi:.2f},{self(self.T)/twopi:.2f}])"
         )
 
-    def plot(self, ax=None ):
+    def plot(self, ax=None):
         """
         Draws the frequency schedule for the whole annealing time.
         ax : the ax on which to draw
@@ -96,11 +95,11 @@ class Frequency:
         import matplotlib.pyplot as plt
 
         if ax is None:
-            fig, ax = plt.subplots(1,1,figsize=(3,2))
-        times = np.linspace(0,self.T, int(self.T*100)+1)
-        ax.plot(times, self(times)/twopi)
-        ax.set_xlabel(r'$t$ (s)')
-        ax.set_ylabel(r'$F(t)/2\pi$ (Hz)')
+            fig, ax = plt.subplots(1, 1, figsize=(3, 2))
+        times = np.linspace(0, self.T, int(self.T * 100) + 1)
+        ax.plot(times, self(times) / twopi)
+        ax.set_xlabel(r"$t$ (s)")
+        ax.set_ylabel(r"$F(t)/2\pi$ (Hz)")
         return ax
 
     ################ Algebra ################
@@ -186,6 +185,7 @@ class Frequency:
                 ) / (t2 - t1)
 
         return Frequency(new_T, new_schedule, new_integral, new_name)
+
 
 def check_schedule(fct, name="function"):
     if not isinstance(fct, Callable):

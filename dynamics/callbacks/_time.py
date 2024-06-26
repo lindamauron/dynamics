@@ -15,6 +15,7 @@ def well_dt(T, init_value, extremal_value, extrema=0.5, var=1 / 40):
 
     returns : callable schedule of dt
     """
+
     def schedule(step: JaxArray, log_data: dict, driver: TDVPBaseDriver):
         new_dt = init_value + (extremal_value - init_value) * jnp.exp(
             -((step / T - extrema) ** 2) / var
@@ -34,6 +35,7 @@ def linear_dt(T, init_value, final_value):
 
     returns : callable schedule of dt
     """
+
     def schedule(step: JaxArray, log_data: dict, driver: TDVPBaseDriver):
         new_dt = init_value + (final_value - init_value) / T * step
 
@@ -54,10 +56,11 @@ def constant_dt(value):
 
 class DynamicalTimeStep:
     """
-    Modifies the value of dt according to a callable schedule passed as an initializing argument. 
+    Modifies the value of dt according to a callable schedule passed as an initializing argument.
     In general, the schedule can use whatever quantity is present in log_data or driver to calculate the next time step.
     When called, it reports the previous value of dt and then modifies it for the next step accodring to the schedule.
     """
+
     def __init__(self, schedule: Callable = constant_dt(1e-2)):
         """
         schedule : callable returning the time step whenenver called inside a driver.

@@ -55,4 +55,4 @@ class Cubic(Frequency):
             saddle_point,
             2 * np.pi * saddle_value,
         )
-        super().__init__(T, schedule, integral, name = "Cubic")
+        super().__init__(T, schedule, integral, name="Cubic")

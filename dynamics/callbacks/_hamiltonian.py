@@ -8,7 +8,7 @@ def callback_frequencies(step: JaxArray, log_data: dict, driver: TDVPBaseDriver)
     """
     Reports the values of each frequency during the evolution
     """
-    for k,f in enumerate(driver.generator.frequencies):
+    for k, f in enumerate(driver.generator.frequencies):
         log_data[f"F{k}"] = f(step)
     log_data["tau"] = step / driver.generator.annealing_time
 

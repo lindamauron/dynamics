@@ -4,16 +4,14 @@ from scipy.interpolate import CubicSpline
 from .base import Frequency
 
 
-
 def fromarray(xvalues, yvalues):
     return CubicSpline(xvalues, yvalues)
-
 
 
 class Extrapolated(Frequency):
     def __init__(self, xvalues, yvalues, T=None):
         if T is None:
-            T = np.max(xvalues)-np.min(xvalues)
+            T = np.max(xvalues) - np.min(xvalues)
 
         schedule = CubicSpline(xvalues, yvalues)
 

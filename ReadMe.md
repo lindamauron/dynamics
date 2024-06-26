@@ -7,3 +7,21 @@ Class making things easier to instantiate a frequency schedule for the Hamiltoni
 It is also possible to append a schedule after the other, as long as the two schedules inherit from the `Frequency` module. The result is again a `Frequency` object with all the previously stated properties.
 
 Some default schedules are implemented, such as constant, linear, quadratic and cubic schedules. There is also the possibility to define a schedule given an array of `t` and `f` values to be extrapolated afterwards. 
+
+## Time-dependent Hamiltonian
+Class generalizing the creation of a time-dependent operator made up of multiple sub-operators. For an Hamiltonian of the form $$\hat{\mathcal{H}}(t) = \sum_i f_i(t) \hat{h}_i$$, where $f_i$ are frequency schedules previously defined and $\hat{h}_i$ the operator they tune, the object can be instantiated as `H = TimeDependentHamiltonian([h], [f])`. 
+
+It is then possible to call the Hamiltonian simply by `H(t)`. It also possesses decorators as `to_sparse`, `to_dense`, `to_jax_operator` which modifies the list of sub-operators. 
+
+Two basic Hamiltonians are provided, namely `RydbergHamiltonian` where $$H(t) = -\frac{Ω(t)}{2} \sum_i X_i - Δ(t) \sum_i n_i + \frac{Ω_0}{2} \sum_{ij} \left(\frac{R_b}{r_{ij}}\right)^6 n_i n_j$$ and `SpinGlassHamiltonian` where $$H(t) = -Γ * \sum_i σ_i^x + J \sum_{i<j} J_{ij} σ_i^z σ_j^z$$, with $J_{ij} ~ N(0,1)$. 
+
+
+## Callbacks
+Many often used callbacks to keep in the same place. They can be of general use (`callback_parameters`, `CallbackSampler`). 
+
+### Dynamics specific
+Directly linked to the `TimeDependentHamiltonian`, we have the `callback_frequencies` which reports all frequencies during the evolution. 
+For any Hamiltonian, the TDVP error $R^2$ can be efficiently (since all values are stores) estimated and sotred using `callback_R2`. 
+
+For some evolutions, having a non-constant time-step `dt` can be of use. The `DynamicalTimeStep` takes care of this by modifying and reporting the value of the time step all along the evolution, given a callable time-step schedule. The default is set to a constant value of `1e-2`. Some predefined schedules are possible to use, like `constant_dt`, `linear_dt` and `well_dt`. 
+
