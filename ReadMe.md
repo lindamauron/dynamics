@@ -13,7 +13,6 @@ Class generalizing the creation of a time-dependent operator made up of multiple
 
 It is then possible to call the Hamiltonian simply by `H(t)`. It also possesses decorators as `to_sparse`, `to_dense`, `to_jax_operator` which modifies the list of sub-operators. 
 
-Two basic Hamiltonians are provided, namely `RydbergHamiltonian` where $$H(t) = -\frac{Ω(t)}{2} \sum_i X_i - Δ(t) \sum_i n_i + \frac{Ω_0}{2} \sum_{ij} \left(\frac{R_b}{r_{ij}}\right)^6 n_i n_j$$ and `SpinGlassHamiltonian` where $$H(t) = -Γ * \sum_i σ_i^x + J \sum_{i<j} J_{ij} σ_i^z σ_j^z$$, with $J_{ij} ~ N(0,1)$. 
 
 
 ## Callbacks
@@ -27,6 +26,6 @@ For some evolutions, having a non-constant time-step `dt` can be of use. The `Dy
 
 ## Models
 Some often-used models, i.e. implementations of the Jastrow.
-In particular, it is possible to define a $N$-body factorized Jastrow $$ W_{ijkl\dots} = V_{ij} V_{jk} V_{kl} \dots $$in one line, with `JasMultipleBodies(features=(1,2,4))` (here for a $1$, $2$ and $4$ body interaction). To use a mean-field instead of a $1$-body Jastrow, replace with `JMFMultipleBodies(features=(1,2,4))` simply (the rest remains the same). 
+In particular, it is possible to define a $N$-body factorized Jastrow $$W_{ijkl ..} = V_{ij} V_{jk} V_{kl} \dots$$ in one line, with `JasMultipleBodies(features=(1,2,4))` (here for a $1$, $2$ and $4$ body interaction). To use a mean-field instead of a $1$-body Jastrow, replace with `JMFMultipleBodies(features=(1,2,4))` simply (the rest remains the same). 
 
 Be aware that this factorized form of the Jastrow yields zero gradients in zero.

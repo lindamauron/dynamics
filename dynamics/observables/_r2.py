@@ -153,18 +153,3 @@ class TDVPError:
 @jax.jit
 def R2(S, G, dE, dw):
     return 1 + (dw.conj().T @ (S @ dw - G) - G.conj().T @ dw) / dE
-
-
-def callback_R2(step, log_data, te):
-    if te._dw is not None:
-        dw, _ = nk.jax.tree_ravel(te._dw)
-        F, _ = nk.jax.tree_ravel(te._loss_forces)
-        G = te._loss_grad_factor * F
-
-        log_data["r2"] = (
-            1
-            + (dw.conj().T @ (te._last_qgt @ dw - G) - G.conj().T @ dw)
-            / te._loss_stats.variance
-        )
-
-    return True

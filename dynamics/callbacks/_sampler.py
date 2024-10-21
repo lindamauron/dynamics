@@ -7,9 +7,12 @@ from netket.driver.abstract_variational_driver import AbstractVariationalDriver
 class CallbackSampler:
     """
     Reports all values of interest for the sampler. In particular, this same class can be used for any sampler.
-    Exact : nothing is reported
-    Metropolis : - acceptance
-    ParrallelTempering : - acceptance
+    Exact :
+        - nothing is reported
+    Metropolis :
+        - acceptance
+    ParrallelTempering :
+        - acceptance
         - beta_position
         - beta_diffusion
     """

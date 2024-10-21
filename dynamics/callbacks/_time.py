@@ -77,6 +77,6 @@ class DynamicalTimeStep:
 
         new_dt = self._schedule(step, log_data, driver)
 
-        driver.integrator._rkstate = driver.integrator._rkstate.replace(dt=new_dt)
+        driver.integrator._state = driver.integrator._state.replace(dt=new_dt)
 
         return True

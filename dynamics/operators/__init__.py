@@ -1,3 +1,3 @@
-from .hamiltonian import TimeDependentHamiltonian, RydbergHamiltionian, SpinGlassHamiltonian
+from .hamiltonian import TimeDependentHamiltonian
 
-from ._typical_hamiltonians import Hx, Hzz
+from ._typical_operators import Hz, Hx, Hzz

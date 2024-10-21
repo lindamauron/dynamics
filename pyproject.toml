@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling>=1.8.0", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dynamics"
+description="Time-dependent additions to NetKet."
+authors=[
+    {name = "Linda Mauron"},
+]
+license = {text= "Apache 2.0"}
+readme = "README.md"
+keywords = ["Machine Learning",
+            "Quantum",
+            "Neural Networks",
+            "Neural Quantum States",
+            "Jax",
+            "Monte Carlo"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS :: MacOS X",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dynamic = ["version"]
+
+requires-python = ">=3.10"
+dependencies = [
+    "netket>=3.15",
+]
+
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "_version.py"
+
+
+[tool.hatch.build]
+include = ["dynamics*"]

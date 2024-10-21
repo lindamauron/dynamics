@@ -8,7 +8,7 @@ class Constant(Frequency):
     Defines the constant frequency schedule.
     """
 
-    def __init__(self, T=1.0, value=0.0):
+    def __init__(self, T=1.0, value=1.0):
         """
         T : total annealing time (s).
         value : value of f(t) (in Hz)

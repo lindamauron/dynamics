@@ -1,4 +1,5 @@
 import numpy as np
+import jax
 
 from typing import Tuple, List
 from netket.utils.types import Array
@@ -44,6 +45,9 @@ class TimeDependentHamiltonian:
                 raise ValueError("The operators should all be Netket's operators.")
             if h.hilbert != self.hilbert:
                 raise ValueError("All operators must act on the same Hilbert space.")
+
+            if jax.config.read("jax_platform_name") == "gpu":
+                h = h.to_pauli_strings().to_jax_operator()
             H.append(h)
 
             if not issubclass(type(f), _Frequency):

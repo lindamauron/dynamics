@@ -8,6 +8,7 @@ import jax.nn.initializers as init
 import flax.linen as nn
 from flax.linen.dtypes import promote_dtype
 
+
 class JastrowManyBody(nn.Module):
     r"""
     n-body Jastrow implementation, as the n-body matrix is represented as a product of two bodies:
@@ -115,6 +116,7 @@ class JasMultipleBodies(nn.Module):
     ..math:
         logpsi(z) = \sum_n logpsi_n(z)
     """
+
     features: Union[tuple[int, ...], int] = (1, 2)
     """The featues of the Jastrow object, i.e. the number of bodies."""
 
