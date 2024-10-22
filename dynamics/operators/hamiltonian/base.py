@@ -5,7 +5,7 @@ from typing import Tuple, List
 from netket.utils.types import Array
 from scipy.sparse import csr_matrix as _csr_matrix
 
-from ...frequencies import Frequency as _Frequency
+from ...schedules import Frequency as _Frequency
 from netket.operator import AbstractOperator as _AbstractOperator
 from netket.operator import LocalOperatorJax as _JaxOperator
 

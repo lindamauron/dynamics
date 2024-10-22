@@ -1,9 +1,9 @@
 import numpy as np
 
-from .base import Frequency
+from .base import Schedule
 
 
-class Constant(Frequency):
+class Constant(Schedule):
     """
     Defines the constant frequency schedule.
     """

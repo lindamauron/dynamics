@@ -1,6 +1,6 @@
 import numpy as np
 
-from .base import Frequency
+from .base import Schedule
 
 
 def linear_sweep(fi, ff):
@@ -11,7 +11,7 @@ def linear_sweep(fi, ff):
     return lambda t: (f[0] * t + f[1]), lambda t1, t2: f[0] / 2 * (t2 + t1) + f[1]
 
 
-class Linear(Frequency):
+class Linear(Schedule):
     """
     Defines the linear frequency schedule.
     It is defined as starting with at t=0 with f(0) = f_initial and reaching the final value f(T) = f_final.

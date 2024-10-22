@@ -1,6 +1,6 @@
 import numpy as np
 
-from .base import Frequency
+from .base import Schedule
 
 
 def quadratic_sweep(
@@ -16,7 +16,7 @@ def quadratic_sweep(
     )
 
 
-class Quadratic(Frequency):
+class Quadratic(Schedule):
     """
     Defines the linear frequency schedule.
     It is defined as starting with an extrema at t=0 with f(0) = f_initial and reaching the final value f(T) = f_final.

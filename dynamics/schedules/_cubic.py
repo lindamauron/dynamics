@@ -2,7 +2,7 @@ import numpy as np
 
 from scipy.interpolate import interp1d
 
-from .base import Frequency
+from .base import Schedule
 
 
 def cubic_sweep(fi, ff, tInf, fInf, slope=0.0):
@@ -27,7 +27,7 @@ def cubic_sweep(fi, ff, tInf, fInf, slope=0.0):
     )
 
 
-class Cubic(Frequency):
+class Cubic(Schedule):
     """
     Defines the cubic frequency schedule.
     It is defined as starting t=0 with f(0) = f_initial and reaching the final value f(T) = f_final.

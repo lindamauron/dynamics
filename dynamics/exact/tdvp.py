@@ -2,7 +2,7 @@ from netket.operator import AbstractOperator
 from netket.utils.types import Union, Array, Callable
 from netket.vqs import VariationalState
 from ..operators.hamiltonian import TimeDependentHamiltonian
-from ..frequencies import Constant as ConstantFrequency
+from ..schedules import Constant as ConstantSchedule
 
 from netket.experimental.dynamics import AbstractSolver
 from netket.experimental.driver.tdvp_common import TDVPBaseDriver, odefun
@@ -44,7 +44,7 @@ class ExactEvolution(TDVPBaseDriver):
 
         if not issubclass(type(operator), TimeDependentHamiltonian):
             operator = TimeDependentHamiltonian(
-                [operator], [ConstantFrequency(1.0, 1.0)]
+                [operator], [ConstantSchedule(1.0, 1.0)]
             )
         self.sparse_generator = operator.to_sparse()
         self.frequencies = operator.frequencies
@@ -87,16 +87,16 @@ def odefun_tdvp(  # noqa: F811
     state.parameters = w
     state.reset()
 
-    # dPsi/dt =  - factor (H-E) Psi = f(t)
     HPsi, E = _Hpsi_and_expH(state.vector, t, driver)
-    driver._loss_stats = Stats(mean=E, error_of_mean=0.0)
+    norm = state.norm()
+    driver._loss_stats = Stats(mean=E/norm, error_of_mean=0.0)
     dPsi_dt = -1j * HPsi
 
     driver._dw = {"vector": dPsi_dt}
 
     if stage == 0:
         # save the info at the initial point
-        driver._ode_data = {
+        driver._loss_stats = {
             "loss_stats": driver._loss_stats,
         }
 

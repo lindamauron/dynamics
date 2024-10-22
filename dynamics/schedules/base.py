@@ -6,7 +6,7 @@ import jax
 twopi = 2 * np.pi
 
 
-class Frequency:
+class Schedule:
     """
     General class for a frequency schedule.
     It is also possible to integrate and derivate the frequencies over any time interval.
@@ -35,7 +35,7 @@ class Frequency:
             integral = check_integral(integral, "integral")
         self._integral = integral
 
-        self.name = "Frequency" if name is None else name
+        self.name = "Schedule" if name is None else name
 
     def __call__(self, t):
         """
@@ -103,20 +103,35 @@ class Frequency:
         return ax
 
     ################ Algebra ################
-    def __add__(self, other) -> "Frequency":
+    def __neg__(self) -> "Schedule":
+        return (-1.0) * self
+    
+    def __add__(self, other) -> "Schedule":
         if np.issubdtype(type(other), np.number):
             new_schedule = lambda t: self._schedule(t) + other * 2 * np.pi
-            return Frequency(self.T, new_schedule, self._integral, self.name)
+            return Schedule(self.T, new_schedule, self._integral, self.name)
+        elif issubclass(type(other), Schedule):
+            if other.T != self.T:
+                raise ValueError("All frequencies must occure for the same time.")
+            new_schedule = lambda t: self._schedule(t) + other._schedule(t)
+            if self._integral is not None and other._integral is not None:
+                new_integral = lambda t1, t2: self._integral(t1, t2) + other._integral(t1, t2)
+            else:
+                new_integral = None
+            return Schedule(self.T, new_schedule, new_integral, self.name + "+" + other.name)
         else:
             raise NotImplementedError
-
-    def __radd__(self, other) -> "Frequency":
+        
+    def __radd__(self, other) -> "Schedule":
         return self.__add__(other)
+        
+    def __sub__(self, other) -> "Schedule":
+        return self.__add__(-other)
 
-    def __rsub__(self, other) -> "Frequency":
+    def __rsub__(self, other) -> "Schedule":
         return -self + other
 
-    def __mul__(self, other) -> "Frequency":
+    def __mul__(self, other) -> "Schedule":
         if np.issubdtype(type(other), np.number):
             new_schedule = lambda t: self._schedule(t) * other
 
@@ -125,18 +140,39 @@ class Frequency:
             else:
                 new_integral = None
 
-            return Frequency(self.T, new_schedule, new_integral, self.name)
+            return Schedule(self.T, new_schedule, new_integral, self.name)
+        
+        elif issubclass(type(other), Schedule):
+            if other.T != self.T:
+                raise ValueError("All frequencies must occure for the same time.")
+            new_schedule = lambda t: self._schedule(t) * other._schedule(t) / 2/np.pi
+            if self._integral is not None and other._integral is not None:
+                new_integral = lambda t1, t2: self._integral(t1, t2) * other._integral(t1, t2) / 2/np.pi
+            else:
+                new_integral = None
+            return Schedule(self.T, new_schedule, new_integral, self.name + "*" + other.name)
         else:
             raise NotImplementedError
 
-    def __rmul__(self, other) -> "Frequency":
+    def __rmul__(self, other) -> "Schedule":
         return self.__mul__(other)
-
-    def __neg__(self) -> "Frequency":
-        return (-1.0) * self
+    
+    def __truediv__(self, other) -> "Schedule":
+        if np.issubdtype(type(other), np.number):
+            return self.__mul__(1.0 / other)
+        elif issubclass(type(other), Schedule):
+            return self.__mul__(other.__opposite__())
+        else:
+            raise NotImplementedError
+    
+    def __rtrudiv__(self, other) -> "Schedule":
+        return other * self.__opposite__()
+    
+    def __opposite__(self) -> "Schedule":
+        return Schedule(self.T, lambda t: (2*np.pi)**2 / self._schedule(t), self._integral, "1/" + self.name)
 
     ################ Appending ################
-    def time_shift(self, dt) -> "Frequency":
+    def time_shift(self, dt) -> "Schedule":
         """
         Shifts the time origin by dt. This maco is usefull in order to append multiple frequencies after the other.
         """
@@ -145,15 +181,15 @@ class Frequency:
             new_integral = lambda t1, t2: self._integral(t1 + dt / self.T, t2 / self.T)
         else:
             new_integral = None
-        return Frequency(self.T, new_schedule, new_integral, self.name)
+        return Schedule(self.T, new_schedule, new_integral, self.name)
 
-    def append(self, other) -> "Frequency":
+    def append(self, other) -> "Schedule":
         """
         This functionality allows to append a frequency schedule to follow the current one. In particular, for `F = F1.append(F2)` one has
             F(t) = F1(t) if t < F1.T else F2(t-F1.T)
         but everything can be used smoothly from the new object's interface.
         """
-        if not issubclass(type(other), Frequency):
+        if not issubclass(type(other), Schedule):
             raise NotImplementedError
 
         new_name = self.name + other.name
@@ -184,7 +220,7 @@ class Frequency:
                     flag1 * int1(t1, y1) * (y1 - t1) + flag2 * int2(x2, t2) * (t2 - x2)
                 ) / (t2 - t1)
 
-        return Frequency(new_T, new_schedule, new_integral, new_name)
+        return Schedule(new_T, new_schedule, new_integral, new_name)
 
 
 def check_schedule(fct, name="function"):

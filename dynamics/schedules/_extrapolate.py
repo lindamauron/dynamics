@@ -1,14 +1,14 @@
 import numpy as np
 from scipy.interpolate import CubicSpline
 
-from .base import Frequency
+from .base import Schedule
 
 
 def fromarray(xvalues, yvalues):
     return CubicSpline(xvalues, yvalues)
 
 
-class Extrapolated(Frequency):
+class Extrapolated(Schedule):
     def __init__(self, xvalues, yvalues, T=None):
         if T is None:
             T = np.max(xvalues) - np.min(xvalues)
