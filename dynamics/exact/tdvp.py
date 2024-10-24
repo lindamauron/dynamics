@@ -1,3 +1,4 @@
+import numpy as np
 from netket.operator import AbstractOperator
 from netket.utils.types import Union, Array, Callable
 from netket.vqs import VariationalState
@@ -37,9 +38,9 @@ class ExactEvolution(TDVPBaseDriver):
             state = ExactDenseState(operator.hilbert, vector_state)
 
         if not propagation_type == "real":
-            raise ValueError("Only 'real' propagaation_type is implemented")
-        self.propagation_type = propagation_type
-        self._dynamics_factor = 1j
+            raise ValueError("Only 'real' propagation_type is implemented")
+
+
         state.to_complex()
 
         if not issubclass(type(operator), TimeDependentHamiltonian):
@@ -49,8 +50,6 @@ class ExactEvolution(TDVPBaseDriver):
         self.sparse_generator = operator.to_sparse()
         self.frequencies = operator.frequencies
         self._generator_repr = repr(operator)
-
-        self._time_independent_op = isinstance(operator, AbstractOperator)
 
         super().__init__(operator, state, ode_solver, t0=t0, error_norm=error_norm)
 
@@ -68,7 +67,7 @@ class ExactEvolution(TDVPBaseDriver):
 
 
 def _Hpsi_and_expH(psi, t, driver):
-    """
+    r"""
     returns H(t) @ psi = \sum_k f_k(t)* (h_k@psi) and psi.conj().T @ H(t) @ psi = \sum_k f_k(t) * (psi.conj().T@(h_k@psi) )
     for H(t) = \sum_k f_k(t)* h_k
     """
@@ -77,7 +76,7 @@ def _Hpsi_and_expH(psi, t, driver):
 
     Es = [f * (psi.conj().dot(opsi)) for f, opsi in zip(fs, hpsis)]
 
-    return sum([f * hv for f, hv in zip(fs, hpsis)]), sum(Es)
+    return sum([f * hv for f, hv in zip(fs, hpsis)]), sum(Es) / np.linalg.norm(psi)**2
 
 
 @odefun.dispatch
@@ -88,8 +87,8 @@ def odefun_tdvp(  # noqa: F811
     state.reset()
 
     HPsi, E = _Hpsi_and_expH(state.vector, t, driver)
-    norm = state.norm()
-    driver._loss_stats = Stats(mean=E/norm, error_of_mean=0.0)
+
+    driver._loss_stats = Stats(mean=E, error_of_mean=0.0)
     dPsi_dt = -1j * HPsi
 
     driver._dw = {"vector": dPsi_dt}

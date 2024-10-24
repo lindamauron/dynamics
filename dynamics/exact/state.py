@@ -121,9 +121,7 @@ def expect(
     if isinstance(Op, DiscreteOperator):
         Op = Op.to_sparse()
 
-    psi = vstate.parameters['vector']
-
-    psi = _normalize(psi)
+    psi = _normalize(vstate.parameters['vector'])
     Opsi = Op @ psi
     expval_O = (psi.conj().dot(Opsi)).sum()
     variance = jnp.sum(jnp.abs(Opsi - expval_O * psi) ** 2)

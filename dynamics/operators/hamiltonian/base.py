@@ -5,7 +5,7 @@ from typing import Tuple, List
 from netket.utils.types import Array
 from scipy.sparse import csr_matrix as _csr_matrix
 
-from ...schedules import Frequency as _Frequency
+from ...schedules import Schedule as _Schedule
 from netket.operator import AbstractOperator as _AbstractOperator
 from netket.operator import LocalOperatorJax as _JaxOperator
 
@@ -22,7 +22,7 @@ class TimeDependentHamiltonian:
     """
 
     def __init__(
-        self, operators: List[_AbstractOperator], frequencies: List[_Frequency]
+        self, operators: List[_AbstractOperator], frequencies: List[_Schedule]
     ):
         """
         operators : list of inidividual operators.
@@ -50,7 +50,7 @@ class TimeDependentHamiltonian:
                 h = h.to_pauli_strings().to_jax_operator()
             H.append(h)
 
-            if not issubclass(type(f), _Frequency):
+            if not issubclass(type(f), _Schedule):
                 raise ValueError(
                     "The schedules should all be instances of `Frequency`."
                 )
@@ -79,7 +79,7 @@ class TimeDependentHamiltonian:
         return self._H
 
     @property
-    def frequencies(self) -> List[_Frequency]:
+    def frequencies(self) -> List[_Schedule]:
         """
         The list of frequencies acting on each operators of the Hamiltonian.
         """

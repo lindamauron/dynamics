@@ -13,6 +13,38 @@ Class generalizing the creation of a time-dependent operator made up of multiple
 
 It is then possible to call the Hamiltonian simply by `H(t)`. It also possesses decorators as `to_sparse`, `to_dense`, `to_jax_operator` which modifies the list of sub-operators. 
 
+## Drivers
+There are two new drivers compatible with netket's utilities.
+
+### ExactEvolution 
+A simple exact evolution driver that uses sparse matrices for the hamiltonian to apply it on a dense state. 
+
+### SemiExactTDVP
+It decomposes the Hamiltonian in a diagonal and off-diagonal part $H(t) = H_x(t) + H_z(t)$ and applies the diagonal part exactly to the parameters $$U_z(t) \exp( \sum_{ij} W_{ij} z_i z_j + \sum_i V_i z_i ) = \exp( \sum_{ij} \tilde{W}_{ij} z_i z_j + \sum_i \tilde{V}_i z_i ).$$ Since this will change for all hamiltonians and models, the functions `Uz` and `Hx` must be `dispatch`ed for each setting.
+
+In particular, there are multiple ways to adress the application of $U_z$ (see this [paper](https://arxiv.org/abs/2410.05955) for example), e.g.
+1. $U_z(t_1,t_2) = \exp( -i H_z(t_1) (t_2-t_1)) $
+2. $U_z(t_1,t_2) = \exp( -i \int_{t_1}^{t_2} d\tau H_z(\tau) ) $
+3. $U_z(t_1,t_2) = \exp( -i H_z(\frac{t_2+t_1}{2}) (t_2-t_1)) $
+
+which should be equivalent for $dt \to 0$. 
+
+A typical dispatch will look like
+```python
+@nkt.driver.Hx.dispatch
+def my_hx(
+        hamiltonian : MyHamiltonian, t, **kwargs
+):
+    return hamiltonian.frequencies[0](t) * hamiltonian.operators[0]
+
+@nkt.driver.Uz.dispatch
+def my_uz(state, driver, machine : my_model, t1, t2):
+    dw = jax.tree.map(lambda x: 0*x, state.parameters)
+    coeff = -1j * driver.generator.frequencies[1](t1) * (t2-t1)
+    dw['W2']['kernel'] = coeff * driver.generator.J
+    dw['W1']['kernel'] = coeff * driver.generator.h
+    return optax.apply_updates(state.parameters, dw)
+```
 
 
 ## Callbacks
