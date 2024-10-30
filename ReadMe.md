@@ -38,7 +38,7 @@ def my_hx(
     return hamiltonian.frequencies[0](t) * hamiltonian.operators[0]
 
 @nkt.driver.Uz.dispatch
-def my_uz(state, driver, machine : my_model, t1, t2):
+def my_uz(state, driver, machine : MyModel, t1, t2):
     dw = jax.tree.map(lambda x: 0*x, state.parameters)
     coeff = -1j * driver.generator.frequencies[1](t1) * (t2-t1)
     dw['W2']['kernel'] = coeff * driver.generator.J
@@ -57,7 +57,9 @@ For any Hamiltonian, the TDVP error $R^2$ can be efficiently (since all values a
 For some evolutions, having a non-constant time-step `dt` can be of use. The `DynamicalTimeStep` takes care of this by modifying and reporting the value of the time step all along the evolution, given a callable time-step schedule. The default is set to a constant value of `1e-2`. Some predefined schedules are possible to use, like `constant_dt`, `linear_dt` and `well_dt`. 
 
 ## Models
-Some often-used models, i.e. implementations of the Jastrow.
-In particular, it is possible to define a $N$-body factorized Jastrow $$W_{ijkl ..} = V_{ij} V_{jk} V_{kl} \dots$$ in one line, with `JasMultipleBodies(features=(1,2,4))` (here for a $1$, $2$ and $4$ body interaction). To use a mean-field instead of a $1$-body Jastrow, replace with `JMFMultipleBodies(features=(1,2,4))` simply (the rest remains the same). 
+Some often-used models, i.e. implementations of the Jastrow in all flavors. 
+In general, a $k$-body Jastrow Ansatz takes the form $$\log \psi_k (z) = \sum_{i_1 < \dots < i_{k}} W_{i_1 \dots i_k} z_1 \dots z_k$$. To instantiate a sum of multiple orders of Jastrow, just call `JastrowSum(features=(1,2,4))`. This class comes with two options, that can be specified through an argument in the constructor.
+1. It is possible to replace the $\mathcal{O}(N^k)$ parameter kernel with a rank-$2$ approximation $$W_{ijkl ..} = V_{ij} V_{jk} V_{kl} \dots$$ only by stating `factorized=True`. If one wishes to use the factorized version for some correlators but not others, pass a tuple with the same structure as the features, e.g. `JastrowSum(features=(3,4,5), factorized=(False,True,True))`.
+2. Since the $1$-body Jastrow $\sum_i W_i z_i$ behaves like a mean-field Ansatz $\sum_i \log \phi_i(z_i)$, it is possible to directly replace it by calling `JastrowSum(features=(1,2), mean_field=True)`. All the rest remains the same. 
 
-Be aware that this factorized form of the Jastrow yields zero gradients in zero.
+Be aware that the factorized form of the Jastrow yields zero gradients in zero.

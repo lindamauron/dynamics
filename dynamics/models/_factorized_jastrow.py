@@ -8,6 +8,7 @@ import jax.nn.initializers as init
 import flax.linen as nn
 from flax.linen.dtypes import promote_dtype
 
+
 def JastrowNBody(n, *args, **kwargs):
     """
     Factory function to create Jastrow interaction objects.
@@ -29,7 +30,6 @@ def JastrowNBody(n, *args, **kwargs):
         return JasOneBody(*args, **kwargs)
     else:
         return JasNBody(n=n, *args, **kwargs)
-
 
 
 class JasNBody(nn.Module):
@@ -80,4 +80,3 @@ class JasNBody(nn.Module):
         )
 
         return jnp.einsum("nl,nl->n", z, x_in)
-

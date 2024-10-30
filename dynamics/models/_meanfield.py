@@ -46,4 +46,3 @@ class MeanField(nn.Module):
         mf = vmap(one_mf)(x)
 
         return jnp.sum(jnp.log(mf), axis=-1)
-

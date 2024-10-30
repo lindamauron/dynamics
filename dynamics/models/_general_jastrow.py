@@ -13,14 +13,14 @@ class JastrowSum(nn.Module):
     ..math:
         log \psi(z) = \sum_n log \psi_n(z)
 
-    where each n-body Jastrow correlator is defined as 
+    where each n-body Jastrow correlator is defined as
     ..math::
         log \psi_n(z) = \sum_ijkl... W_ijkl... z_i z_j z_k z_l ...
 
     In the case of `factorized` Jastrows, the n-body correlator is defined as
     ..math::
         W_ijkl... = W_ij W_jk W_kl ...
-    and the rest stays the same. 
+    and the rest stays the same.
 
     Finally, one can choose to replace the 1-body Jastrow by a mean-field Ansatz which is defined as
     ..math::
@@ -30,10 +30,10 @@ class JastrowSum(nn.Module):
     features: Union[tuple[int, ...], int] = (1, 2)
     """The features of the Jastrow object, i.e. the number of bodies."""
 
-    factorized : Union[tuple[bool], bool] = True
+    factorized: Union[tuple[bool], bool] = True
     """Boolean indicating whether to use the factorized representation of the Jastrow kernel."""
 
-    mean_field : bool = False
+    mean_field: bool = False
     """Boolean indicating whether to use a mean-field Ansatz instead of the 1-body Jastrow kernel."""
 
     param_dtype: Any = jnp.complex128
@@ -45,19 +45,17 @@ class JastrowSum(nn.Module):
     field_init: NNInitFunc = init.normal(1e-2)
     """Initializer for the one-body parameters."""
 
-    @nn.compact
-    def __call__(self, x_in):
-        """
-        x : (Ns,N)
-        """
+    def setup(self):
         ## modify `factorized` to be a tuple
         if isinstance(self.factorized, bool):
-            factorized = (self.factorized,)*len(self.features)
+            factorized = (self.factorized,) * len(self.features)
         else:
             factorized = tuple(self.factorized)
-        if len(factorized)!=len(self.features):
-            raise ValueError(f"`factorized` should be a tuple of booleans of the same length as features, instead got {self.factorized} and {self.features}.")
-        
+        if len(factorized) != len(self.features):
+            raise ValueError(
+                f"`factorized` should be a tuple of booleans of the same length as features, instead got {self.factorized} and {self.features}."
+            )
+
         ## make things callable
         init = lambda n: self.field_init if n == 1 else self.kernel_init
         if self.mean_field:
@@ -65,13 +63,29 @@ class JastrowSum(nn.Module):
         else:
             name = lambda n: f"W{n}"
 
-        J = 0
-        for i,n in enumerate(self.features):
-            J += JastrowNBody(
-                n=n, factorized=factorized[i], param_dtype=self.param_dtype, kernel_init=init(n), name=name(n)
-            )(x_in)
+        Js = []
+        for i, n in enumerate(self.features):
+            Js.append(
+                JastrowNBody(
+                    n=n,
+                    factorized=factorized[i],
+                    param_dtype=self.param_dtype,
+                    kernel_init=init(n),
+                    name=name(n),
+                )
+            )
 
-        return J
+        self.jastrow_modules = Js
+
+        return
+
+    def __call__(self, x_in):
+        """
+        x : (Ns, N)
+        """
+
+        return sum([J(x_in) for J in self.jastrow_modules])
+
 
 def JastrowNBody(n, factorized, *args, **kwargs):
     """
@@ -90,11 +104,13 @@ def JastrowNBody(n, factorized, *args, **kwargs):
         )
 
     if n == 1:
-        if kwargs['name']=="MF":
+        if kwargs["name"] == "MF":
             from ._meanfield import MeanField
+
             return MeanField(*args, **kwargs)
         else:
             from ._dense_jastrows import JasOneBody
+
             return JasOneBody(*args, **kwargs)
     else:
         if factorized:
