@@ -40,7 +40,6 @@ class ExactEvolution(TDVPBaseDriver):
         if not propagation_type == "real":
             raise ValueError("Only 'real' propagation_type is implemented")
 
-
         state.to_complex()
 
         if not issubclass(type(operator), TimeDependentHamiltonian):
@@ -68,7 +67,7 @@ class ExactEvolution(TDVPBaseDriver):
 
 def _Hpsi_and_expH(psi, t, driver):
     r"""
-    returns H(t) @ psi = \sum_k f_k(t)* (h_k@psi) and psi.conj().T @ H(t) @ psi = \sum_k f_k(t) * (psi.conj().T@(h_k@psi) )
+    returns H(t)|psi> = \sum_k f_k(t)* (h_k@psi) and <H(t)>, and <H(t)^2>
     for H(t) = \sum_k f_k(t)* h_k
     """
     hpsis = [h @ psi for h in driver.sparse_generator]
@@ -76,7 +75,9 @@ def _Hpsi_and_expH(psi, t, driver):
 
     Es = [f * (psi.conj().dot(opsi)) for f, opsi in zip(fs, hpsis)]
 
-    return sum([f * hv for f, hv in zip(fs, hpsis)]), sum(Es) / np.linalg.norm(psi)**2
+    Hpsi = sum([f * hv for f, hv in zip(fs, hpsis)])
+
+    return Hpsi, sum(Es) / np.linalg.norm(psi) ** 2, Hpsi.conj().dot(Hpsi)
 
 
 @odefun.dispatch
@@ -86,9 +87,9 @@ def odefun_tdvp(  # noqa: F811
     state.parameters = w
     state.reset()
 
-    HPsi, E = _Hpsi_and_expH(state.vector, t, driver)
+    HPsi, E, H2 = _Hpsi_and_expH(state.vector, t, driver)
 
-    driver._loss_stats = Stats(mean=E, error_of_mean=0.0)
+    driver._loss_stats = Stats(mean=E, error_of_mean=0.0, variance=H2 - E ** 2)
     dPsi_dt = -1j * HPsi
 
     driver._dw = {"vector": dPsi_dt}

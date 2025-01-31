@@ -8,6 +8,7 @@ import jax.nn.initializers as init
 import flax.linen as nn
 from flax.linen.dtypes import promote_dtype
 
+from ._vec_to_matrix import vec_to_matrix
 
 def JastrowNBody(n, *args, **kwargs):
     """
@@ -88,7 +89,7 @@ class JasTwoBody(nn.Module):
         kernel2 = self.param(
             "kernel", self.kernel_init, (N * (N - 1) // 2,), self.param_dtype
         )
-        W2 = jnp.zeros((N, N), dtype=self.param_dtype).at[il].set(kernel2)
+        W2 = vec_to_matrix(kernel2, (N, N), il)
 
         J2 = jnp.einsum("ij,ni,nj->n", W2, x_in, x_in)
 
@@ -120,7 +121,7 @@ class JasThreeBody(nn.Module):
         kernel3 = self.param(
             "kernel", self.kernel_init, (N * (N - 1) * (N - 2) // 6,), self.param_dtype
         )
-        W3 = jnp.zeros((N, N, N), dtype=self.param_dtype).at[indices].set(kernel3)
+        W3 = vec_to_matrix(kernel3, (N, N, N), indices)
 
         J3 = jnp.einsum("ijk,ni,nj,nk->n", W3, x_in, x_in, x_in)
 
@@ -157,7 +158,7 @@ class JasFourBody(nn.Module):
             (N * (N - 1) * (N - 2) * (N - 3) // 24,),
             self.param_dtype,
         )
-        W4 = jnp.zeros((N, N, N, N), dtype=self.param_dtype).at[indices].set(kernel4)
+        W4 = vec_to_matrix(kernel4, (N, N, N, N), indices)
 
         J4 = jnp.einsum("ijkl,ni,nj,nk,nl->n", W4, x_in, x_in, x_in, x_in)
 
@@ -197,7 +198,7 @@ class JasFiveBody(nn.Module):
             N * (N - 1) * (N - 2) * (N - 3) * (N - 4) // 120,
             self.param_dtype,
         )
-        W5 = jnp.zeros((N, N, N, N, N), dtype=self.param_dtype).at[indices].set(kernel5)
+        W5 = vec_to_matrix(kernel5, (N, N, N, N, N), indices)
 
         J5 = jnp.einsum("ijklm,ni,nj,nk,nl,nm->n", W5, x_in, x_in, x_in, x_in, x_in)
 
@@ -238,7 +239,7 @@ class JasNBody(nn.Module):
 
         # n bodies jastrow
         kernel = self.param(f"W{self.n}", self.kernel_init, size, self.param_dtype)
-        W = jnp.zeros((N,) * self.n, dtype=self.param_dtype).at[indices].set(kernel)
+        W = vec_to_matrix(kernel, (N,) * self.n, indices)
 
         W, x_in = promote_dtype(W, x_in, dtype=None)
 

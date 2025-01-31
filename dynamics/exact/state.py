@@ -4,6 +4,7 @@ from jax import numpy as jnp
 from netket import jax as nkjax
 from netket.hilbert import AbstractHilbert
 from netket.utils.types import Array, DType, Union
+from scipy.sparse import csr_matrix
 
 from netket.vqs.base import VariationalState, expect
 from netket.operator import DiscreteOperator
@@ -108,7 +109,7 @@ def _compute_norm(v):
 
 @expect.dispatch
 def expect(
-    vstate: ExactDenseState, Op: Union[DiscreteOperator, Array]
+    vstate: ExactDenseState, Op: Union[DiscreteOperator, Array, csr_matrix]
 ) -> Stats:  # noqa: F811
     r"""
     Computes the expectation value of an operator with respect to the state.
@@ -116,13 +117,13 @@ def expect(
         vstate: The state.
         Op: The operator.
     """
-    _check_hilbert(vstate, Op)
-
     if isinstance(Op, DiscreteOperator):
+        _check_hilbert(vstate, Op)
         Op = Op.to_sparse()
 
-    psi = _normalize(vstate.parameters['vector'])
+    psi = _normalize(vstate.parameters["vector"])
     Opsi = Op @ psi
     expval_O = (psi.conj().dot(Opsi)).sum()
     variance = jnp.sum(jnp.abs(Opsi - expval_O * psi) ** 2)
     return Stats(mean=expval_O, error_of_mean=0.0, variance=variance)
+

@@ -105,7 +105,7 @@ class Schedule:
     ################ Algebra ################
     def __neg__(self) -> "Schedule":
         return (-1.0) * self
-    
+
     def __add__(self, other) -> "Schedule":
         if np.issubdtype(type(other), np.number):
             new_schedule = lambda t: self._schedule(t) + other * 2 * np.pi
@@ -115,16 +115,20 @@ class Schedule:
                 raise ValueError("All frequencies must occure for the same time.")
             new_schedule = lambda t: self._schedule(t) + other._schedule(t)
             if self._integral is not None and other._integral is not None:
-                new_integral = lambda t1, t2: self._integral(t1, t2) + other._integral(t1, t2)
+                new_integral = lambda t1, t2: self._integral(t1, t2) + other._integral(
+                    t1, t2
+                )
             else:
                 new_integral = None
-            return Schedule(self.T, new_schedule, new_integral, self.name + "+" + other.name)
+            return Schedule(
+                self.T, new_schedule, new_integral, self.name + "+" + other.name
+            )
         else:
             raise NotImplementedError
-        
+
     def __radd__(self, other) -> "Schedule":
         return self.__add__(other)
-        
+
     def __sub__(self, other) -> "Schedule":
         return self.__add__(-other)
 
@@ -141,22 +145,29 @@ class Schedule:
                 new_integral = None
 
             return Schedule(self.T, new_schedule, new_integral, self.name)
-        
+
         elif issubclass(type(other), Schedule):
             if other.T != self.T:
                 raise ValueError("All frequencies must occure for the same time.")
-            new_schedule = lambda t: self._schedule(t) * other._schedule(t) / 2/np.pi
+            new_schedule = lambda t: self._schedule(t) * other._schedule(t) / 2 / np.pi
             if self._integral is not None and other._integral is not None:
-                new_integral = lambda t1, t2: self._integral(t1, t2) * other._integral(t1, t2) / 2/np.pi
+                new_integral = (
+                    lambda t1, t2: self._integral(t1, t2)
+                    * other._integral(t1, t2)
+                    / 2
+                    / np.pi
+                )
             else:
                 new_integral = None
-            return Schedule(self.T, new_schedule, new_integral, self.name + "*" + other.name)
+            return Schedule(
+                self.T, new_schedule, new_integral, self.name + "*" + other.name
+            )
         else:
             raise NotImplementedError
 
     def __rmul__(self, other) -> "Schedule":
         return self.__mul__(other)
-    
+
     def __truediv__(self, other) -> "Schedule":
         if np.issubdtype(type(other), np.number):
             return self.__mul__(1.0 / other)
@@ -164,12 +175,17 @@ class Schedule:
             return self.__mul__(other.__opposite__())
         else:
             raise NotImplementedError
-    
+
     def __rtrudiv__(self, other) -> "Schedule":
         return other * self.__opposite__()
-    
+
     def __opposite__(self) -> "Schedule":
-        return Schedule(self.T, lambda t: (2*np.pi)**2 / self._schedule(t), self._integral, "1/" + self.name)
+        return Schedule(
+            self.T,
+            lambda t: (2 * np.pi) ** 2 / self._schedule(t),
+            self._integral,
+            "1/" + self.name,
+        )
 
     ################ Appending ################
     def time_shift(self, dt) -> "Schedule":

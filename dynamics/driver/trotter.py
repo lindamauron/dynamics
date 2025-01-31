@@ -26,6 +26,7 @@ from netket.vqs import (
     MCState,
     FullSumState,
 )
+
 PureState = Union[MCState, FullSumState]
 from netket.experimental.dynamics import AbstractSolver
 
@@ -34,6 +35,7 @@ from netket.experimental.driver.tdvp import _map_parameters, TDVP
 
 from dynamics.operators import TimeDependentHamiltonian
 from dynamics.schedules import Constant as ConstantSchedule
+
 
 class SemiExactTDVP(TDVP):
     r"""
@@ -96,7 +98,7 @@ class SemiExactTDVP(TDVP):
                 Note that norm is used in jax.jit-compiled code.
         """
         # Convert the Hamiltonian
-        if not issubclass(type(operator), TimeDependentHamiltonian):
+        if not issubclass(type(operator), TimeDependentHamiltonian) and not callable(operator):
             operator = TimeDependentHamiltonian(
                 [operator], [ConstantSchedule(1.0, 1.0)]
             )
@@ -112,8 +114,9 @@ class SemiExactTDVP(TDVP):
             linear_solver_restart=linear_solver_restart,
             error_norm=error_norm,
         )
-        self._uz = lambda t1, t2, **kwargs : Uz(self.state, self, self.state.model, t1, t2, **kwargs)
-
+        self._uz = lambda t1, t2, **kwargs: Uz(
+            self.state, self, self.state.model, t1, t2, **kwargs
+        )
 
     def _iter(
         self,
@@ -150,12 +153,14 @@ class SemiExactTDVP(TDVP):
                 tstops = tstops[1:]
 
             # store the intermediate time since it will be automatically updated by the integrator
-            # in the case of adaptive time-stepping, the mid_t is not really mid, but what matters 
+            # in the case of adaptive time-stepping, the mid_t is not really mid, but what matters
             # is only that we get to the same final time
             mid_t = self.t + self.dt
 
             # apply Uz
-            self._integrator._state = self._integrator._state.replace(y =  self._uz( self.t, mid_t ))
+            self._integrator._state = self._integrator._state.replace(
+                y=self._uz(self.t, mid_t)
+            )
 
             # apply the rest of the Hamiltonian
             step_accepted = False
@@ -177,7 +182,9 @@ class SemiExactTDVP(TDVP):
                     )
 
             # apply Uz
-            self._integrator._state = self._integrator._state.replace(y = self._uz( mid_t, self.t ))
+            self._integrator._state = self._integrator._state.replace(
+                y=self._uz(mid_t, self.t)
+            )
 
             self._step_count += 1
             # optionally call callback
@@ -199,16 +206,15 @@ class SemiExactTDVP(TDVP):
             self.ode_solver,
         )
 
+
 @odefun.dispatch
-def Ux(
-        state: MCState | FullSumState, driver: SemiExactTDVP, t, w, *, stage=0
-):
+def Ux(state: MCState | FullSumState, driver: SemiExactTDVP, t, w, *, stage=0):
     # pylint: disable=protected-access
 
     state.parameters = w
     state.reset()
 
-    # since 
+    # since
     driver._loss_stats = state.expect(driver.generator(t))
 
     ## CHANGE HERE : only apply Hx
@@ -254,13 +260,14 @@ def Hx(hamiltonian, t, **kwargs):
 
     return hamiltonian(t)
 
+
 @dispatch
 def Uz(state, driver, machine, t1, t2, **kwargs):
     r"""
     Updates the parameters of the wave function by exactly applying the diagonal part of the Hamiltonian,
     i.e. `Uz = exp(-i B(t) Hz dt/2)`. Other variants (in particular concerning the way to deal with t1 and t2) can be implemented.
     Must be `dispatch`ed for each specific Hamiltonian and model.
-    
+
     Args:
         state: The state to be evolved.
         driver: The driver.
@@ -268,10 +275,9 @@ def Uz(state, driver, machine, t1, t2, **kwargs):
         t1: The initial time.
         t2: The final time.
 
-    Returns: 
+    Returns:
         The updated parameters of the state.
             default: The same parameters as the input state.
     """
 
     return state.parameters
-

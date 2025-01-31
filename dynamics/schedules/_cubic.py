@@ -28,14 +28,16 @@ def cubic_sweep(fi, ff, tInf, fInf, slope=0.0):
         + f[3],
     )
 
+
 def my_fit(fi, ff, tInf, fInf):
     T = 1.0
-    a = ( (fInf - fi) + (ff-fInf)/(T/tInf-1)**2 )/T/tInf**2
-    b = -(fInf-fi)/tInf**2 - 2*a*tInf
-    c = -3*a*tInf**2 - 2*b*tInf
-    d  = fi
+    a = ((fInf - fi) + (ff - fInf) / (T / tInf - 1) ** 2) / T / tInf**2
+    b = -(fInf - fi) / tInf**2 - 2 * a * tInf
+    c = -3 * a * tInf**2 - 2 * b * tInf
+    d = fi
 
     return a, b, c, d
+
 
 class Cubic(Schedule):
     """
@@ -62,8 +64,8 @@ class Cubic(Schedule):
             warnings.warn(
                 "Saddle point should be given as a relative time w.r.t T but is > 1.0"
                 f"Converting it to relative as {saddle_point}xT."
-                )
-            
+            )
+
         if saddle_value is None:
             saddle_value = (f_initial + f_final) / 2
 

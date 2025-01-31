@@ -8,6 +8,7 @@ import jax.nn.initializers as init
 import flax.linen as nn
 from flax.linen.dtypes import promote_dtype
 
+from ._vec_to_matrix import vec_to_matrix as vec_to_tril
 
 def JastrowNBody(n, *args, **kwargs):
     """
@@ -68,7 +69,7 @@ class JasNBody(nn.Module):
         kernel = self.param(
             f"kernel", self.kernel_init, (N * (N - 1) // 2,), self.param_dtype
         )
-        W = jnp.zeros((N, N), dtype=self.param_dtype).at[il].set(kernel)
+        W = vec_to_tril(kernel, N, k=-1, )
 
         W, x_in = promote_dtype(W, x_in, dtype=None)
 
