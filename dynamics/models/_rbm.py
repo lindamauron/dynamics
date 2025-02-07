@@ -35,7 +35,7 @@ class JRBM(nn.Module):
     use_visible_bias: bool = True
     """if True adds a bias to the input not passed through the nonlinear layer."""
     use_visible_jastrow: bool = True
-    """if True adds a jastrow factor to the output."""
+    """if True adds a jastrow factor to the input not passed through the nonlinear layer."""
     precision: Any = None
     """numerical precision of the computation see :class:`jax.lax.Precision` for details."""
 
@@ -50,7 +50,17 @@ class JRBM(nn.Module):
 
     @nn.compact
     def __call__(self, input):
-        z = nk.models.RBM(self.param_dtype, self.activation, self.alpha, self.use_hidden_bias, self.use_visible_bias, self.use_visible_jastrow, self.precision, self.kernel_init, self.hidden_bias_init, self.visible_bias_init, self.visible_jastrow_init)(input)
+        z = nk.models.RBM(
+            self.param_dtype, 
+            self.activation, 
+            self.alpha, 
+            self.use_hidden_bias, 
+            self.use_visible_bias, 
+            self.precision, 
+            self.kernel_init, 
+            self.hidden_bias_init, 
+            self.visible_bias_init
+            )(input)
 
         if self.use_visible_jastrow:
             j = JasTwoBody(

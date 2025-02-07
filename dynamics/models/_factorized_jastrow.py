@@ -69,7 +69,7 @@ class JasNBody(nn.Module):
         kernel = self.param(
             f"kernel", self.kernel_init, (N * (N - 1) // 2,), self.param_dtype
         )
-        W = vec_to_tril(kernel, N, k=-1, )
+        W = vec_to_tril(kernel, (N, N), il )
 
         W, x_in = promote_dtype(W, x_in, dtype=None)
 
