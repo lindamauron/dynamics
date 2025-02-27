@@ -95,6 +95,21 @@ class ExactDenseState(VariationalState):
 
     def norm(self):
         return _compute_norm(self.vector)
+    
+    def to_array(self, normalize: bool = True) -> jnp.ndarray:
+        """
+        Returns the dense-vector representation of this state.
+
+        Args:
+            normalize: If True, the vector is normalized to have L2-norm 1.
+
+        Returns:
+            An exponentially large vector representing the state in the computational
+            basis.
+        """
+        if normalize:
+            return _normalize(self._vector)
+        return self._vector
 
 
 @jax.jit

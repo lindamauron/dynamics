@@ -5,7 +5,7 @@ import numpy as np
 import jax
 from jax import numpy as jnp
 from flax import linen as nn
-from jax.nn.initializers import normal
+from jax.nn.initializers import normal, constant
 import netket as nk
 
 from netket.utils import HashableArray
@@ -13,15 +13,17 @@ from netket.utils.types import NNInitFunc
 from netket import nn as nknn
 
 from ._dense_jastrows import JasTwoBody
+from ._meanfield import MeanField
 
 default_kernel_init = normal(stddev=0.01)
+default_mf_init = constant(1.0)
 
 
 class JRBM(nn.Module):
     r"""A restricted boltzman Machine, equivalent to a 2-layer FFNN with a
     nonlinear activation function in between, coupled to a Jastrow factor as external layer.
     ..math::
-        log \psi(z) = \sum_i log \cosh(\sum_j W_{ij} x_j + b_i) + \sum_{ij} x_i J_{ij} x_j
+        log \psi(z) = \sum_i log \cosh(\sum_j W_{ij} x_j + b_i) + \sum_{ij} x_i J_{ij} x_j + \sum_i \log \phi_i(x_i)
     """
 
     param_dtype: Any = np.float64
@@ -36,6 +38,8 @@ class JRBM(nn.Module):
     """if True adds a bias to the input not passed through the nonlinear layer."""
     use_visible_jastrow: bool = True
     """if True adds a jastrow factor to the input not passed through the nonlinear layer."""
+    use_visible_meanfield: bool = True
+    """if True adds a jastrow factor to the input not passed through the nonlinear layer."""
     precision: Any = None
     """numerical precision of the computation see :class:`jax.lax.Precision` for details."""
 
@@ -46,6 +50,8 @@ class JRBM(nn.Module):
     visible_bias_init: NNInitFunc = default_kernel_init
     """Initializer for the visible bias."""
     visible_jastrow_init: NNInitFunc = default_kernel_init
+    """Initializer for the visible jastrow factor."""
+    visible_meanfield_init: NNInitFunc = default_kernel_init
     """Initializer for the visible jastrow factor."""
 
     @nn.compact
@@ -65,6 +71,12 @@ class JRBM(nn.Module):
         if self.use_visible_jastrow:
             j = JasTwoBody(
                 self.param_dtype, self.visible_jastrow_init
+                )
+            
+            z = z + j(input)
+        if self.use_visible_meanfield:
+            j = MeanField(
+                self.param_dtype, self.visible_meanfield_init
                 )
             
             z = z + j(input)

@@ -44,7 +44,7 @@ class ExactEvolution(TDVPBaseDriver):
 
         if not issubclass(type(operator), TimeDependentHamiltonian):
             operator = TimeDependentHamiltonian(
-                [operator], [ConstantSchedule(1.0, 1.0)]
+                [operator], [ConstantSchedule(1.0, 1.0)/2/np.pi]
             )
         self.sparse_generator = operator.to_sparse()
         self.frequencies = operator.frequencies
