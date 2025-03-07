@@ -38,7 +38,7 @@ class JRBM(nn.Module):
     """if True adds a bias to the input not passed through the nonlinear layer."""
     use_visible_jastrow: bool = True
     """if True adds a jastrow factor to the input not passed through the nonlinear layer."""
-    use_visible_meanfield: bool = True
+    use_visible_meanfield: bool = False
     """if True adds a jastrow factor to the input not passed through the nonlinear layer."""
     precision: Any = None
     """numerical precision of the computation see :class:`jax.lax.Precision` for details."""
@@ -65,18 +65,20 @@ class JRBM(nn.Module):
             self.precision, 
             self.kernel_init, 
             self.hidden_bias_init, 
-            self.visible_bias_init
+            self.visible_bias_init, 
+            name='RBM'
             )(input)
 
         if self.use_visible_jastrow:
             j = JasTwoBody(
-                self.param_dtype, self.visible_jastrow_init
+                self.param_dtype, self.visible_jastrow_init, name='W2'
                 )
             
             z = z + j(input)
+
         if self.use_visible_meanfield:
             j = MeanField(
-                self.param_dtype, self.visible_meanfield_init
+                self.param_dtype, self.visible_meanfield_init, name='MF'
                 )
             
             z = z + j(input)
