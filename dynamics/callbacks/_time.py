@@ -3,6 +3,12 @@ from typing import Callable
 from netket.utils.types import JaxArray
 from netket.experimental.driver.tdvp_common import TDVPBaseDriver
 
+def monitor_dt(step: JaxArray, log_data: dict, driver: TDVPBaseDriver):
+    """
+    Monitors the value of `dt` during time evolution.
+    """
+    log_data["dt"] = driver.integrator.dt
+    return True
 
 def well_dt(T, init_value, extremal_value, extrema=0.5, var=1 / 40):
     """
@@ -44,15 +50,16 @@ def linear_dt(T, init_value, final_value):
     return schedule
 
 
-def constant_dt(value):
+def unchanged_dt():
     """
-    Defines a schedule of constant value.
-    value : value of dt
+    Defines a schedule of constant value fixed by the driver.
 
     returns : callable schedule of dt
     """
-    return lambda x, y, z: value
+    def schedule(step: JaxArray, log_data: dict, driver: TDVPBaseDriver):
+        return driver.integrator.dt
 
+    return schedule
 
 class DynamicalTimeStep:
     """
@@ -61,7 +68,7 @@ class DynamicalTimeStep:
     When called, it reports the previous value of dt and then modifies it for the next step accodring to the schedule.
     """
 
-    def __init__(self, schedule: Callable = constant_dt(1e-2)):
+    def __init__(self, schedule: Callable = unchanged_dt()):
         """
         schedule : callable returning the time step whenenver called inside a driver.
             It must take the arguments step (float), log_data (dict) and driver (TDVPCommon).
@@ -73,7 +80,7 @@ class DynamicalTimeStep:
         self._schedule = schedule
 
     def __call__(self, step: JaxArray, log_data: dict, driver: TDVPBaseDriver):
-        log_data["dt"] = driver.integrator.dt
+        monitor_dt(step, log_data, driver)
 
         new_dt = self._schedule(step, log_data, driver)
 

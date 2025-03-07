@@ -6,3 +6,5 @@ from . import callbacks
 from . import exact
 from . import driver
 from . import sampler
+from . import utils
+from . import observables

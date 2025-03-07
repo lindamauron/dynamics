@@ -47,7 +47,7 @@ class TimeDependentHamiltonian:
                 raise ValueError("All operators must act on the same Hilbert space.")
 
             if jax.config.read("jax_platform_name") == "gpu":
-                h = h.to_pauli_strings().to_jax_operator()
+                h = h.to_jax_operator()
             H.append(h)
 
             if not issubclass(type(f), _Schedule):
