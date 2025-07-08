@@ -5,12 +5,14 @@ from netket import jax as nkjax
 from netket.hilbert import AbstractHilbert
 from netket.utils.types import Array, DType, Union
 from scipy.sparse import csr_matrix
+from jax.experimental.sparse import BCSR
 
 from netket.vqs.base import VariationalState, expect
 from netket.operator import DiscreteOperator
 from netket.stats import Stats
 from netket.vqs.full_summ.expect import _check_hilbert
 
+from flax import core as fcore
 
 class ExactDenseState(VariationalState):
     r"""
@@ -39,20 +41,19 @@ class ExactDenseState(VariationalState):
         if not self.hilbert.is_indexable:
             raise ValueError("Cannot create state if hilbert space is not indexable.")
 
-        # COnvert to array if needed
+        # Convert to array if needed
         if isinstance(vector, VariationalState):
             vector = vector.to_array(normalize=True)
-        self._vector = jnp.asarray(vector).ravel()
+        vector = jnp.asarray(vector, dtype=dtype).ravel()
 
-        if dtype is not None:
-            self._vector = self._vector.astype(dtype)
         if normalize:
             self.normalize()
 
-        if self.hilbert.n_states != self._vector.size:
+        if self.hilbert.n_states != vector.size:
             raise Exception(
                 "Size of vector does not correspond to number of states in the hilbert space."
             )
+        self.parameters = {"vector": vector}
 
     def __repr__(self):
         return (
@@ -60,38 +61,21 @@ class ExactDenseState(VariationalState):
         )
 
     def to_complex(self):
-        if not nkjax.is_complex_dtype(self._vector.dtype):
-            dtype = nkjax.dtype_complex(self._vector.dtype)
-            self._vector = self._vector.astype(dtype)
+        if not nkjax.is_complex_dtype(self.vector.dtype):
+            dtype = nkjax.dtype_complex(self.vector.dtype)
+            self.parameters = {'vector': self.vector.astype(dtype)}
 
     def normalize(self):
-        self._vector = _normalize(self._vector)
+        self.parameters = {'vector': _normalize(self.vector)}
 
     @property
     def vector(self):
-        return self._vector
+        return self.parameters["vector"]
 
-    @vector.setter
-    def vector(self, other):
-        self._normalized = False
-        other = jnp.asarray(other).ravel()
-        if other.shape != self._vector.shape:
-            raise ValueError("Provided vector does not match internal vector in shape.")
-        # make sure we never down cast
-        _dtype = jnp.promote_types(self._vector.dtype, other.dtype)
-        self._vector = other.astype(_dtype).copy()
 
     @property
     def normalized_vector(self):
-        return _normalize(self._vector)
-
-    @property
-    def parameters(self):
-        return {"vector": self.vector}
-
-    @parameters.setter
-    def parameters(self, other):
-        self.vector = other["vector"]
+        return _normalize(self.vector)
 
     def norm(self):
         return _compute_norm(self.vector)
@@ -108,8 +92,8 @@ class ExactDenseState(VariationalState):
             basis.
         """
         if normalize:
-            return _normalize(self._vector)
-        return self._vector
+            return _normalize(self.vector)
+        return self.vector
 
 
 @jax.jit
@@ -124,7 +108,7 @@ def _compute_norm(v):
 
 @expect.dispatch
 def expect(
-    vstate: ExactDenseState, Op: Union[DiscreteOperator, Array, csr_matrix]
+    vstate: ExactDenseState, Op: Union[DiscreteOperator, Array, csr_matrix, BCSR]
 ) -> Stats:  # noqa: F811
     r"""
     Computes the expectation value of an operator with respect to the state.
@@ -139,6 +123,6 @@ def expect(
     psi = _normalize(vstate.parameters["vector"])
     Opsi = Op @ psi
     expval_O = (psi.conj().dot(Opsi)).sum()
-    variance = jnp.sum(jnp.abs(Opsi - expval_O * psi) ** 2)
-    return Stats(mean=expval_O, error_of_mean=0.0, variance=variance)
+    variance = (Opsi.conj() * Opsi).sum() - expval_O**2
+    return Stats(mean=expval_O, error_of_mean=0.0, variance=variance.real)
 

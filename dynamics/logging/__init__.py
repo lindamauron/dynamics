@@ -1,0 +1,1 @@
+from .netket_logs import JsonLog, StateLog

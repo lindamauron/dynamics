@@ -46,8 +46,6 @@ class TimeDependentHamiltonian:
             if h.hilbert != self.hilbert:
                 raise ValueError("All operators must act on the same Hilbert space.")
 
-            if jax.config.read("jax_platform_name") == "gpu":
-                h = h.to_jax_operator()
             H.append(h)
 
             if not issubclass(type(f), _Schedule):
@@ -62,7 +60,7 @@ class TimeDependentHamiltonian:
         self._F = F
         self._T = T
 
-        self._str = f"Hamiltonian({self.hilbert}, \n \t F={self.frequencies}, \n \t O={self.operators}\n)"
+        self._str = self.__class__.__name__ + f"({self.hilbert}, \n \t F={self.frequencies}, \n \t O={self.operators}\n)"
 
     @property
     def hilbert(self) -> _SpinHilbert:

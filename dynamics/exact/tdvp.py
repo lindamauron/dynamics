@@ -63,6 +63,12 @@ class ExactEvolution(TDVPBaseDriver):
             self._generator_repr,
             self.ode_solver,
         )
+    
+    def _log_additional_data(self, log_dict, step):
+        super()._log_additional_data(log_dict, step)
+        log_dict['tau'] = step/self.frequencies[0].T
+        for i,f in enumerate(self.frequencies):
+            log_dict[f.name+f'{i}'] = f(step)
 
 
 def _Hpsi_and_expH(psi, t, driver):
@@ -70,6 +76,8 @@ def _Hpsi_and_expH(psi, t, driver):
     returns H(t)|psi> = \sum_k f_k(t)* (h_k@psi) and <H(t)>, and <H(t)^2>
     for H(t) = \sum_k f_k(t)* h_k
     """
+    norm = np.linalg.norm(psi)
+    
     hpsis = [h @ psi for h in driver.sparse_generator]
     fs = [f(t) for f in driver.frequencies]
 
@@ -77,7 +85,7 @@ def _Hpsi_and_expH(psi, t, driver):
 
     Hpsi = sum([f * hv for f, hv in zip(fs, hpsis)])
 
-    return Hpsi, sum(Es) / np.linalg.norm(psi) ** 2, Hpsi.conj().dot(Hpsi)
+    return Hpsi, sum(Es) / norm ** 2, Hpsi.conj().dot(Hpsi) / norm ** 2
 
 
 @odefun.dispatch
@@ -89,15 +97,13 @@ def odefun_tdvp(  # noqa: F811
 
     HPsi, E, H2 = _Hpsi_and_expH(state.vector, t, driver)
 
-    driver._loss_stats = Stats(mean=E, error_of_mean=0.0, variance=H2 - E ** 2)
+    _loss_stats = Stats(mean=E, error_of_mean=0.0, variance=(H2 - E ** 2).real )
     dPsi_dt = -1j * HPsi
 
     driver._dw = {"vector": dPsi_dt}
 
     if stage == 0:
         # save the info at the initial point
-        driver._loss_stats = {
-            "loss_stats": driver._loss_stats,
-        }
+        driver._loss_stats = _loss_stats
 
     return driver._dw
