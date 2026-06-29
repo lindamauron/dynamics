@@ -18,9 +18,7 @@ class CallbackSampler:
     """
 
     def __init__(self, sampler):
-        if sampler.is_exact:
-            self._call = lambda x, y, z: True
-        elif type(sampler) == ParallelTemperingSampler:
+        if type(sampler) == ParallelTemperingSampler:
             self._call = callback_tempering
         else:
             self._call = callback_acc
@@ -35,7 +33,7 @@ def callback_acc(step: JaxArray, log_data: dict, driver: AbstractVariationalDriv
     """
     Acceptance of the sampler during the evolution
     """
-    log_data["acc"] = driver.state.sampler_state.acceptance
+    log_data["acc"] = driver.state.sampler_state.acceptance if hasattr(driver.state.sampler_state, 'acceptance') else 1
 
     return True
 

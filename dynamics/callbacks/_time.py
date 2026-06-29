@@ -34,7 +34,7 @@ def well_dt(T, init_value, extremal_value, extrema=0.5, var=1 / 40):
 
 def linear_dt(T, init_value, final_value):
     """
-    Defines a schedule forming a linear rampe from init_value to final_value.
+    Defines a schedule forming a linear ramp from init_value to final_value.
     T : total time of evolution
     init_value : initial value
     final_value : final value
@@ -84,6 +84,6 @@ class DynamicalTimeStep:
 
         new_dt = self._schedule(step, log_data, driver)
 
-        driver.integrator._state = driver.integrator._state.replace(dt=new_dt)
+        driver._integrator._state = driver._integrator._state.replace(dt=new_dt)
 
         return True

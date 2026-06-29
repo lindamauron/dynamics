@@ -1,4 +1,5 @@
 import numpy as np
+import jax.numpy as jnp
 
 from .base import Schedule
 
@@ -13,6 +14,6 @@ class Constant(Schedule):
         T : total annealing time (s).
         value : value of f(t) (in Hz)
         """
-        schedule = lambda t: 2 * np.pi * value * np.ones_like(t)
+        schedule = lambda t: 2 * np.pi * value * jnp.ones_like(t)
         integral = lambda t1, t2: 2 * np.pi * value
         super().__init__(T, schedule, integral, name="Constant")

@@ -11,6 +11,10 @@ def save_log(filename: str, log: dict):
         log : The dictionary to save.
     """
     import orjson
+    import os
+    dir_path = os.path.dirname(filename)
+    if dir_path and not os.path.exists(dir_path):
+        os.makedirs(dir_path, exist_ok=True)
 
     with open(filename + ".log", "wb") as io:
         io.write(

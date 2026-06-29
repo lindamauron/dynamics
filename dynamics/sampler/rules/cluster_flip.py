@@ -72,7 +72,7 @@ class ClusterFlipRule(MetropolisRule):
         # flip the cluster
         def scalar_update_fun(σ, cluster):
             sites = rule.clusters[cluster]
-            return σ.at[sites].multiply(-1.0)
+            return σ.at[sites].multiply(-1)
 
         return (
             jax.vmap(scalar_update_fun, in_axes=(0, 0), out_axes=0)(σ, cluster_id),
