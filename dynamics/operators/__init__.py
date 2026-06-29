@@ -1,3 +1,3 @@
 from .hamiltonian import TimeDependentHamiltonian
 
-from ._typical_operators import Hz, Hx, Hzz
+from .common import IdOperator, SxOperator, SxxOperator, SxxxxOperator, SzOperator, SzzOperator, SzzzzOperator, SSOperator
